@@ -1,0 +1,21 @@
+{
+  "source": "https://database.lichess.org/lichess_db_eval.jsonl.zst",
+  "documentation": "https://database.lichess.org/#evals",
+  "license": "CC0-1.0",
+  "retrieved_utc": "2026-09-30T12:44:55.370854+00:00",
+  "seed": 314,
+  "method": "Seeded sample of a bounded archive prefix; not a representative sample of all chess or all Lichess.",
+  "compressed_bytes_read": 2031616,
+  "records_scanned": 18000,
+  "eligible_records": 14023,
+  "rows": 4000,
+  "sha256": "d7fb14fc50637b9cd21fd37c5c62f0d5514f68bff86b2eb1514ae57a0fe7aa69",
+  "filters": "Standard legal nonterminal positions; deepest available evaluation >=15; finite cp labels with abs(cp)<=1000; mate labels excluded.",
+  "target": "White-perspective engine centipawns divided by 100; positive favors White. Engine estimates, not outcome probabilities.",
+  "split": "80/10/10 by unique piece placement, seed 314. No game IDs in this export, so no game-disjoint guarantee. Related positions may remain.",
+  "counts": {
+    "train": 3199,
+    "validation": 400,
+    "test": 401
+  }
+}

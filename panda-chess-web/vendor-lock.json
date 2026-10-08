@@ -1,0 +1,22 @@
+{
+  "stockfish-17.1-lite-single-03e3232.js": {
+    "url": "https://unpkg.com/stockfish@17.1.0/src/stockfish-17.1-lite-single-03e3232.js",
+    "sha256": "1c8265e52fdaef797684b4979b42c5dcfe0350df3e11a87e48e4ec5f86e0ca5c",
+    "bytes": 20672
+  },
+  "stockfish-17.1-lite-single-03e3232.wasm": {
+    "url": "https://unpkg.com/stockfish@17.1.0/src/stockfish-17.1-lite-single-03e3232.wasm",
+    "sha256": "7ca31bedd166148931a1cc84dbd8dd9cf001744e9994caf23a3c6ff4988d7086",
+    "bytes": 7280741
+  },
+  "Copying.txt": {
+    "url": "https://raw.githubusercontent.com/nmrugg/stockfish.js/602fd7e1a571a2be71f242942db90483731f2a1f/Copying.txt",
+    "sha256": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
+    "bytes": 35821
+  },
+  "stockfish-source.zip": {
+    "url": "https://codeload.github.com/nmrugg/stockfish.js/zip/602fd7e1a571a2be71f242942db90483731f2a1f",
+    "sha256": "6073f9078a14fc929f8c0a284633618d2ac1ab171324361c8193ab43f08dd654",
+    "bytes": 148181100
+  }
+}

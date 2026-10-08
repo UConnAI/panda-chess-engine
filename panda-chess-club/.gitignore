@@ -1,0 +1,23 @@
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.build/
+*.zip
+models/
+references/
+external/*
+# Intentional official release bundle: user requested Stockfish in the repository.
+!external/stockfish-windows-x86-64.zip
+arena_results/
+games/
+.DS_Store
+Thumbs.db
+
+project_data/
+
+!external/stockfish-macos-m1-apple-silicon.tar.gz
+!external/stockfish-macos-x86-64.tar.gz

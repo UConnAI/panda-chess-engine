@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated state and dependencies
+__pycache__/
+*.py[cod]
+.build/
+.venv/
+venv/
+node_modules/
+exports/
+recordings/
+*.zip
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+panda-chess-club/models/
+panda-chess-club/arena_results/
+panda-chess-club/games/
