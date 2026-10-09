@@ -25,3 +25,6 @@ Thumbs.db
 panda-chess-club/models/
 panda-chess-club/arena_results/
 panda-chess-club/games/
+
+# Instructor-only teaching notes stay in the private source repository.
+**/INSTRUCTOR.md
