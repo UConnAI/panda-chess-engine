@@ -95,3 +95,5 @@ nav{flex-wrap:wrap}.three{margin:20px 0}.linkbutton.primary:hover{background:#12
 .studio-guide>p{max-width:760px}.studio-milestones{padding-left:24px}.studio-milestones>li{margin:14px 0;padding-left:6px}.studio-milestones summary{font-weight:700;line-height:1.6}.studio-milestones p{font-size:14px;line-height:1.7}.studio-guide code{font-size:12px;background:#e9efdf;padding:2px 5px;border-radius:4px;overflow-wrap:anywhere}.studio-guide #ai-project-prompt{font-family:ui-monospace,monospace;font-size:12px;line-height:1.65;min-height:300px}.studio-guide .advanced{background:#f4f6ec;border:1px solid #d1ddcb;border-radius:10px;padding:16px;margin-top:16px}
 
 #branch,#reference-line{scroll-margin-top:24px}
+
+.bulk-items{margin:12px 0}.bulk-item{display:flex;align-items:center;gap:10px;padding:9px;border-bottom:1px solid #dee5d7}.bulk-item input{width:18px;height:18px;flex-shrink:0}.bulk-item span{line-height:1.5}.bulk-delete{padding:12px;border:1px solid #d8e0d3;border-radius:10px}

@@ -41,7 +41,7 @@ This writes packaged source into the ignored `.build/personal-project/` folder a
 - Actual search counters, candidate moves, and inspectable predicted leaf boards.
 - A real 782-input, 32-hidden-unit neural evaluator trained on bundled public engine evaluations.
 - Training curves, one-board prediction traces, immutable model versions, continuation and loading.
-- Model choices sorted by validation error, detailed model metadata, recoverable deletion/restoration, and protected champion/active arena versions.
+- Model choices sorted by validation error, detailed model metadata, recoverable deletion/restoration, and protected champion/active arena versions. Checkbox multi-selection supports deleting several saved/deleted models or arena histories together, with selected-size totals and confirmation.
 - Paired arena games with equal Panda search settings (external Stockfish uses a separate time limit), PGN exports, persistent W/D/L and unfinished counts, and a guarded champion promotion.
 - Member-game PGN capture for a later training extension.
 

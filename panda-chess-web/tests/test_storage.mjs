@@ -9,7 +9,7 @@ function setup(confirmResult=true){
  let deletion,worker;
  const context=vm.createContext({URL,Map,Promise,Error,Uint8Array,
   document:{currentScript:{src:'https://club.github.io/panda-chess-engine/bridge.js?v=123'},
-   getElementById:id=>id==='delete-browser-data'?button:status,
+   getElementById:id=>id==='delete-browser-data'?button:id==='browser-status'?status:null,
    addEventListener:(name,fn)=>handlers[name]=fn},
   navigator:{locks:{request:(_name,_options,callback)=>{callback({});return Promise.resolve();}}},
   confirm:()=>confirmResult,indexedDB:{deleteDatabase:name=>{deleted.push(name);deletion={};queueMicrotask(()=>deletion.onsuccess());return deletion;}},

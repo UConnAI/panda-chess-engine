@@ -1,4 +1,5 @@
 'use strict';
+let bulkManagers=[];
 let references={unlocked:false,available:[]};
 let hintEngine='positional',ownHint=null;
 let state,tab='play',busy=false,running=false,moves=[],pos,selected=null,bot='positional',depth=2,budget=3000,pruning=true,ordering=true,arena=null;
@@ -8,7 +9,7 @@ function sortedModels(){return [...state.models].sort((a,b)=>a.validation.mse-b.
 function errorValue(n){return Number(n).toFixed(6);}
 function modelLabel(m){return `${m.id} · MSE ${errorValue(m.validation.mse)} · ${m.count} positions · ${m.epoch} epochs${m.id===sortedModels()[0]?.id?' · ★ lowest error':''}`;}
 function options(value,includeChampion=true){return ['random','material','positional',...(includeChampion?['champion']:[]),...(state.custom_bots||[]).map(b=>b.id),...sortedModels().map(m=>m.id),...(references.unlocked?references.available:[])].map(id=>{const m=state.models.find(m=>m.id===id);return `<option value="${id}" ${value===id?'selected':''}>${m?modelLabel(m):name(id)}</option>`;}).join('');}
-function lock(on){document.querySelectorAll('button,select,input').forEach(e=>{if(!e.closest('#result-flash'))e.disabled=on;});syncControls(on);syncContinuation();if($('arena-explore')?.dataset.ended==='true')$('arena-explore').disabled=true;}
+function lock(on){document.querySelectorAll('button,select,input').forEach(e=>{if(!e.closest('#result-flash'))e.disabled=on;});syncControls(on);syncContinuation();syncBulkManagers();if($('arena-explore')?.dataset.ended==='true')$('arena-explore').disabled=true;}
 async function act(fn){if(busy)return;busy=true;lock(true);$('error').hidden=true;$('working').textContent='Working… actual engine computation';try{await fn();}catch(e){$('error').hidden=false;$('error').textContent=e.message;running=false;}finally{busy=false;lock(false);$('working').textContent='';}}
 function resultFlash(title,detail='',autoDismiss=0){
  if(!autoDismiss)running=false;
@@ -197,6 +198,7 @@ function renderArenaBase(){
  }
  $('arena-history').innerHTML=[...arena.history].reverse().map(arenaHistoryCard).join('')||'No previous runs.';
  $('arena-storage').textContent=`${arena.history.length} saved matches · ${modelFileSize(arena.history.reduce((total,r)=>total+(r.size_bytes||0),0))} total on disk`;
+ bulkDeleteManager($('arena-history'),arena.history,'arena');
  bindArenaHistory();
  lock(busy);
 }
@@ -366,8 +368,10 @@ function renderModelManager(){
   $('delete-model').onclick=()=>confirmModelDelete($('model').value);
   renderModelDetails();
  }
+ bulkDeleteManager($('models'),models,'models');
  if(deleted.length){
   const restore=document.createElement('details');restore.className='advanced';restore.innerHTML=`<summary>Deleted models (${deleted.length}) — restore or erase</summary><p class="muted">Deleted models are kept in local trash. They are hidden from opponents and saved-model choices. Restore keeps the file; permanent deletion frees its space.</p><label>Deleted model<select id="deleted-model" aria-label="Deleted model">${[...deleted].reverse().map(m=>`<option value="${m.id}">${m.id} · ${modelFileSize(m.size_bytes)} · MSE ${errorValue(m.validation.mse)} · ${m.epoch} epochs</option>`).join('')}</select></label><div class="controls"><button id="restore-model">Restore selected model</button><button id="purge-model" class="danger">Delete permanently</button></div>`;$('models').append(restore);
+  bulkDeleteManager(restore,deleted,'trash');
   $('purge-model').onclick=()=>confirmModelDelete($('deleted-model').value,true);
   $('restore-model').onclick=()=>act(async()=>{state=await api('restore-model',{id:$('deleted-model').value});await show('train');});
  }
@@ -413,3 +417,61 @@ function renderArenaSeats(){
  }
 }
 function renderArena(){$('arena-engine-limits')?.remove();renderArenaBase();renderArenaSeats();if(arena?.active&&[arena.run.candidate,arena.run.opponent].includes('reference-stockfish')){$('arena-status').insertAdjacentHTML('afterend','<p id="arena-engine-limits" class="warning">Stockfish uses its own 0.3-second search; the depth and node limits apply to Panda only. This match is not an equal-compute benchmark.</p>');}syncControls();}
+
+// Multi-selection uses the same guarded deletion endpoints as individual actions.
+function syncBulkManagers(){
+ bulkManagers=bulkManagers.filter(manager=>manager.host.isConnected);
+ bulkManagers.forEach(manager=>manager.sync());
+}
+function bulkDeleteManager(parent,records,kind){
+ if(!records.length)return;
+ const host=document.createElement('details');host.className='advanced bulk-delete';
+ host.innerHTML='<summary></summary><div class="controls"><button data-select-all>Select all available</button><button data-clear>Clear selection</button></div><div class="bulk-items scroll"></div><p class="muted" aria-live="polite"></p><button class="danger" data-delete-selected></button>';
+ host.querySelector('summary').textContent=kind==='arena'?'Select multiple histories':kind==='trash'?'Select multiple deleted models':'Select multiple saved models';
+ const choices=records.map(record=>{
+  const label=document.createElement('label');label.className='bulk-item';
+  const input=document.createElement('input');input.type='checkbox';input.value=record.id;input.setAttribute('aria-label','Select '+record.id);
+  const text=document.createElement('span');
+  text.textContent=record.id+' · '+modelFileSize(record.size_bytes||0)+(kind==='arena'?' · '+name(record.candidate)+' vs '+name(record.opponent):' · validation MSE '+errorValue(record.validation.mse));
+  label.append(input,text);host.querySelector('.bulk-items').append(label);
+  input.onchange=sync;return {record,input,label};
+ });
+ const action=host.querySelector('[data-delete-selected]');
+ function selected(){return choices.filter(c=>c.input.checked).map(c=>c.record);}
+ function sync(){
+  for(const c of choices){const why=kind==='models'?modelDeleteReason(c.record.id):'';if(why)c.input.checked=false;c.input.disabled=busy||!!why;c.label.title=why;}
+  const rows=selected(),bytes=rows.reduce((sum,r)=>sum+(r.size_bytes||0),0);
+  host.querySelector('p').textContent=rows.length+' selected · '+modelFileSize(bytes)+(kind==='models'?' · moves to Deleted models; restore remains available':' · permanent deletion cannot be undone');
+  action.textContent=(kind==='models'?'Delete selected':'Delete selected permanently')+' ('+rows.length+')';
+  action.disabled=busy||!rows.length;
+  host.querySelector('[data-select-all]').disabled=busy||choices.every(c=>c.input.disabled);
+  host.querySelector('[data-clear]').disabled=busy||!rows.length;
+ }
+ host.querySelector('[data-select-all]').onclick=()=>{choices.forEach(c=>{if(!c.input.disabled)c.input.checked=true;});sync();};
+ host.querySelector('[data-clear]').onclick=()=>{choices.forEach(c=>c.input.checked=false);sync();};
+ action.onclick=()=>confirmBulkDelete(selected(),kind);
+ parent.append(host);bulkManagers.push({host,sync});sync();
+}
+function confirmBulkDelete(records,kind){
+ if(!records.length)return;
+ const bytes=records.reduce((sum,r)=>sum+(r.size_bytes||0),0);
+ const dialog=document.createElement('dialog');dialog.className='result-flash';dialog.setAttribute('aria-labelledby','bulk-delete-title');
+ dialog.innerHTML='<div class="result-flash-card"><h2 id="bulk-delete-title"></h2><p></p><ul class="scroll"></ul><div class="controls"><button data-cancel>Cancel</button><button data-confirm class="danger">Confirm deletion</button></div></div>';
+ dialog.querySelector('h2').textContent='Delete '+records.length+' selected '+(kind==='arena'?'histories':'models')+'?';
+ dialog.querySelector('p').textContent=modelFileSize(bytes)+' selected. '+(kind==='models'?'These models will move to Deleted models and can be restored.':'This permanently erases the selected files'+(kind==='arena'?' and their PGNs':'')+' and cannot be undone.');
+ for(const r of records){const item=document.createElement('li');item.textContent=r.id;dialog.querySelector('ul').append(item);}
+ dialog.querySelector('[data-cancel]').onclick=()=>dialog.close();dialog.onclose=()=>dialog.remove();
+ dialog.querySelector('[data-confirm]').onclick=()=>{dialog.close();act(async()=>{
+  let completed=0,failure;
+  for(const r of records){
+   try{
+    if(kind==='arena')arena=await api('arena/delete',{id:r.id});
+    else{state=await api(kind==='trash'?'permanently-delete-model':'delete-model',{id:r.id});if(bot===r.id)bot=state.ready?state.id:'positional';if(hintEngine===r.id)hintEngine='positional';ownHint=null;}
+    completed++;
+   }catch(error){failure=error;break;}
+  }
+  await show(kind==='arena'?'arena':'train');
+  if(failure)throw Error(completed+' of '+records.length+' deleted. Remaining items were kept: '+failure.message);
+ });};
+ document.body.append(dialog);dialog.showModal();dialog.querySelector('[data-cancel]').focus();
+}

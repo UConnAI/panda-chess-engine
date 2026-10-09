@@ -2,7 +2,7 @@
 (() => {
  const base=new URL('.',document.currentScript.src),pending=new Map();
  let worker,sequence=0,lockReady,releaseLock,deleting=false;
- function storageControls(){const button=document.getElementById('delete-browser-data');if(button)button.disabled=deleting||pending.size>0;}
+ function storageControls(){for(const id of ['delete-browser-data','choose-browser-data']){const button=document.getElementById(id);if(button)button.disabled=deleting||pending.size>0;}}
  function status(text){const node=document.getElementById('browser-status');if(node)node.textContent=text;}
  async function acquire(){
   if(!navigator.locks)throw Error('This browser needs Web Locks support. Use a current Chrome, Edge, Firefox or Safari browser.');
@@ -31,6 +31,30 @@
   const id=++sequence;status('Computing on your device…');
   return new Promise((resolve,reject)=>{pending.set(id,{resolve,reject});storageControls();worker.postMessage({id,path,data});});
  }
+ async function chooseBrowserData(){
+  const host=document.getElementById('browser-data-categories');
+  try{
+   const rows=await request('browser/storage');host.replaceChildren();
+   const choices=rows.map(row=>{
+    const label=document.createElement('label');label.style.cssText='display:flex;gap:10px;align-items:center;margin:12px 0';
+    const input=document.createElement('input');input.type='checkbox';input.value=row.id;
+    const text=document.createElement('span');text.textContent=row.label+' · '+row.files+' files · '+(row.bytes/1024).toFixed(1)+' KiB';
+    label.append(input,text);host.append(label);return {row,input};
+   });
+   const note=document.createElement('p');note.className='muted';note.textContent='Deleting models resets a neural champion and ends the active match. Kept histories remain replayable, but deleted bots cannot play extra moves. Download your project first.';host.append(note);
+   const action=document.createElement('button');action.className='danger';action.disabled=true;host.append(action);
+   const selected=()=>choices.filter(c=>c.input.checked).map(c=>c.row);
+   const update=()=>{const rows=selected();action.disabled=!rows.length||pending.size>0;action.textContent='Delete selected categories ('+rows.length+') · '+(rows.reduce((sum,r)=>sum+r.bytes,0)/1024).toFixed(1)+' KiB';};
+   choices.forEach(c=>c.input.onchange=update);update();
+   action.onclick=async()=>{
+    const rows=selected();if(!rows.length||pending.size)return;
+    if(!confirm('Permanently delete these categories from this browser?\n\n'+rows.map(r=>r.label).join('\n')+'\n\nThis cannot be undone. Models reset the neural champion and end the active match. Unselected categories and downloaded ZIPs are kept.'))return;
+    choices.forEach(c=>c.input.disabled=true);action.disabled=true;
+    try{await request('browser/delete-categories',{categories:rows.map(r=>r.id)});location.reload();}
+    catch(error){status('Deletion failed · '+error.message);choices.forEach(c=>c.input.disabled=false);update();}
+   };
+  }catch(error){status('Could not inspect browser data · '+error.message);}
+ }
  async function deleteBrowserData(){
   if(deleting||pending.size){status('Wait for the current action to finish before deleting browser data.');return;}
   if(!confirm('Permanently delete all Panda Chess models, games, arena history and project settings saved by this site in this browser? This cannot be undone. Download your project first if you want to keep it.'))return;
@@ -52,6 +76,7 @@
  document.addEventListener('DOMContentLoaded',()=>{
   const button=document.getElementById('delete-browser-data');
   if(button)button.onclick=deleteBrowserData;
+  const choose=document.getElementById('choose-browser-data');if(choose)choose.onclick=chooseBrowserData;
   storageControls();
  });
  function save(content,name,type){const url=URL.createObjectURL(new Blob([content],{type})),link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}

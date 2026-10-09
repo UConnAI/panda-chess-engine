@@ -50,6 +50,37 @@ class WebTests(unittest.TestCase):
         self.assertEqual(self.api.request('status')['id'],trained['id'])
         self.assertEqual(self.api.request('project')['title'],'My browser engine')
 
+    def test_category_deletion_keeps_unselected_work_and_reserved_model_ids(self):
+        trained=self.api.request('train',dict(count=200,epochs=1,rate=.01))
+        self.api.request('project/profile',dict(title='Keep my profile',author='Student',description=''))
+        self.api.request('save-game',dict(moves=['e2e4'],kind='random'))
+        rows=self.api.request('browser/storage')
+        self.assertEqual({r['id'] for r in rows},{'models','arena','games','settings'})
+        self.assertTrue(next(r for r in rows if r['id']=='models')['bytes']>0)
+        with self.assertRaises(ValueError):self.api.request('browser/delete-categories',dict(categories=['models','../games']))
+        self.assertEqual(len(self.api.request('status')['models']),1)
+        self.api.request('browser/delete-categories',dict(categories=['models']))
+        self.assertEqual(self.api.request('status')['models'],[])
+        self.assertEqual(self.api.request('project')['title'],'Keep my profile')
+        self.assertEqual(len(self.api.request('games')),1)
+        later=self.api.request('train',dict(count=200,epochs=1,rate=.01))
+        self.assertNotEqual(trained['id'],later['id'])
+        self.api.request('browser/delete-categories',dict(categories=['games','settings']))
+        self.assertEqual(self.api.request('games'),[])
+        self.assertEqual(self.api.request('project')['title'],'My Chess Engine')
+        self.assertEqual(len(self.api.request('status')['models']),1)
+
+    def test_arena_category_keeps_player_games_and_neural_models(self):
+        self.api.request('train',dict(count=200,epochs=1,rate=.01))
+        self.api.request('save-game',dict(moves=['e2e4'],kind='random'))
+        self.api.request('arena/start',dict(candidate='random',opponent='material',games=2,depth=1,budget=300,cap=40))
+        self.api.request('arena/step',{})
+        self.assertTrue(self.api.request('arena')['history'])
+        self.api.request('browser/delete-categories',dict(categories=['arena']))
+        self.assertEqual(self.api.request('arena')['history'],[])
+        self.assertEqual(len(self.api.request('games')),1)
+        self.assertEqual(len(self.api.request('status')['models']),1)
+
     def test_static_pages_are_relative_and_private_material_excluded(self):
         for name in ('index.html','lecture.html','take-home.html'):
             text=(SITE/name).read_text(encoding='utf-8')

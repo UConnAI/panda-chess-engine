@@ -24,7 +24,7 @@ jobs:
       - run: python -m pip install -r panda-chess-club/requirements.txt
       - run: python panda-chess-web/build.py
       - run: python -m unittest discover -s panda-chess-web/tests -v
-      - run: node --test panda-chess-web/tests/test_storage.mjs
+      - run: node --test panda-chess-club/tests/test_ui_*.mjs panda-chess-web/tests/test_storage.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

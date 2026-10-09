@@ -28,6 +28,7 @@
   "tests/test_preview.py",
   "tests/test_references.py",
   "tests/test_ui_arena.mjs",
+  "tests/test_ui_bulk.mjs",
   "tests/test_ui_castling.mjs",
   "tests/test_ui_outcomes.mjs",
   "training/__init__.py",

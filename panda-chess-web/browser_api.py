@@ -102,7 +102,41 @@ def download(with_work=False):
         archive.writestr('panda-chess-project/MY_RESULTS.md', report.encode())
     return base64.b64encode(buffer.getvalue()).decode()
 
+CATEGORIES={'models':('Neural models, including deleted models','models'),
+            'arena':('Arena histories and their PGNs','arena_results'),
+            'games':('Saved player games','games'),
+            'settings':('Project profile, custom bots and experiments','project_data')}
+
+def browser_storage():
+    rows=[]
+    for key,(label,folder) in CATEGORIES.items():
+        files=[p for p in (STATE/folder).rglob('*') if p.is_file() and p.name!='.next-id']
+        rows.append(dict(id=key,label=label,files=len(files),bytes=sum(p.stat().st_size for p in files)))
+    return rows
+
+def delete_categories(categories):
+    if not isinstance(categories,list) or not categories or any(type(c)is not str or c not in CATEGORIES for c in categories):
+        raise ValueError('Choose known browser-data categories.')
+    categories=list(dict.fromkeys(categories))
+    if 'models' in categories:
+        # Explicit full-model reset; histories remain readable, but their old bots are unavailable.
+        a.arena.run=None
+        if a.trainer.registry['champion'].startswith('neural-'):
+            a.trainer.registry['champion']='positional';a.trainer.save_registry()
+        for record in list(a.trainer.registry['models']):a.trainer.delete_model(record['id'])
+        for record in list(a.trainer.registry.get('deleted_models',[])):a.trainer.permanently_delete_model(record['id'])
+    if 'arena' in categories:
+        for record in list(a.arena.history()):a.arena.delete_record(record['id'])
+    for key in ('games','settings'):
+        if key in categories:
+            for path in (STATE/CATEGORIES[key][1]).rglob('*'):
+                if path.is_file():path.unlink()
+    initialize(ROOT,STATE)
+    return dict(deleted=categories,storage=browser_storage())
+
 def request(path, data=None):
+    if path=='browser/storage':return browser_storage()
+    if path=='browser/delete-categories':return delete_categories((data or {}).get('categories'))
     if path == 'download/project.zip': return download(False)
     if path == 'download/my-project.zip': return download(True)
     if path == 'project/report.md': return a.trainer.personal.report(a.arena)
