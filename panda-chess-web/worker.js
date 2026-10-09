@@ -10,7 +10,7 @@ async function initialize(){
  py=await loadPyodide({indexURL:PYODIDE});
  progress('Loading NumPy…');await py.loadPackage('numpy');
  progress('Loading chess engine and training boards…');
- const response=await fetch('engine.zip');if(!response.ok)throw Error('Chess source download failed.');
+ const response=await fetch('engine.zip'+new URL(self.location.href).search);if(!response.ok)throw Error('Chess source download failed.');
  py.unpackArchive(new Uint8Array(await response.arrayBuffer()),'zip',{extractDir:'/app'});
  const storage='/panda-state/'+encodeURIComponent(new URL('.',self.location.href).pathname);
  py.FS.mkdirTree(storage);py.FS.mount(py.FS.filesystems.IDBFS,{},storage);

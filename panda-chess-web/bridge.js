@@ -1,5 +1,6 @@
 'use strict';
 (() => {
+ const version=new URL(document.currentScript.src).search;
  const base=new URL('.',document.currentScript.src),pending=new Map();
  let worker,sequence=0,lockReady,releaseLock,deleting=false;
  function storageControls(){for(const id of ['delete-browser-data','choose-browser-data']){const button=document.getElementById(id);if(button)button.disabled=deleting||pending.size>0;}}
@@ -19,7 +20,7 @@
   await acquire();
   if(deleting)throw Error('Browser data deletion is in progress.');
   if(!worker){
-   worker=new Worker(new URL('worker.js',base));
+   worker=new Worker(new URL('worker.js'+version,base));
    worker.onmessage=({data:message})=>{
     if(message.progress){status(message.progress);return;}
     const item=pending.get(message.id);if(!item)return;

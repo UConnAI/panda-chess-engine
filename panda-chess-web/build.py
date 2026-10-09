@@ -56,7 +56,7 @@ from arena.tournament import Arena
 '''
         archive.writestr('actions.py', imports + '\n' + ast.unparse(post))
     ui_files=sorted((SOURCE/'ui').iterdir())
-    ui_version=hashlib.sha256(b''.join(p.read_bytes() for p in ui_files if p.suffix in ('.js','.css'))+(ROOT/'bridge.js').read_bytes()).hexdigest()[:12]
+    ui_version=hashlib.sha256(b''.join(p.read_bytes() for p in ui_files if p.suffix in ('.js','.css'))+(ROOT/'bridge.js').read_bytes()+(ROOT/'worker.js').read_bytes()+(ROOT/'browser_api.py').read_bytes()+b''.join((SOURCE/name).read_bytes() for name in sorted(files))).hexdigest()[:12]
     for path in ui_files:
         if path.suffix not in ('.html','.js','.css'):continue
         text = path.read_text(encoding='utf-8')
