@@ -30,7 +30,7 @@ The build includes lecture pages, the shared engine, public teacher data, reprod
 - Real NumPy training in a background Web Worker, validation curves, model save/load/delete/restore and held-out testing.
 - Paired arena games, replay, continuation, history deletion and PGN export.
 - Prepared Panda and single-thread Stockfish 17.1 Lite reference, including play, comparisons and arena games. This browser release differs from the Stockfish 18 architecture illustration in the lecture.
-- Persistent per-browser model/game/project storage in IndexedDB, with one active app tab to avoid competing writes.
+- Persistent per-browser model/game/project storage in IndexedDB, with one active app tab to avoid competing writes. **Browser storage & privacy** on each page includes **Delete all saved browser data**, with confirmation, to remove this deployment’s saved work and reload fresh. Export first; other sites and downloaded files are unaffected.
 - **Download my project + saved work** includes saved models, custom bots, project identity, experiments, arena records, PGNs and a report. **Clean starter** excludes student records. Both exports contain the full independent Python project and licenses, without lecture or instructor notes.
 
 ## Practical limits

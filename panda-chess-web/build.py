@@ -66,6 +66,7 @@ from arena.tournament import Arena
             # Bridge must be defined before common/app execute.
             text=text.replace('<script src="bridge.js" defer></script>','',1).replace('<head>','<head><script src="bridge.js" defer></script>',1)
             text=text.replace('<main>','<main><p id="browser-status" role="status" class="status">Browser edition · no installation · one active workshop tab</p>',1)
+            text=text.replace('</main>','<details class="panel" id="browser-data"><summary>Browser storage &amp; privacy</summary><p>Models, saved games, arena history and project settings stay in this browser. Download your project before deleting them. This removes only this chess site’s saved work; other sites, downloaded ZIPs and the browser’s normal runtime cache are unaffected.</p><button id="delete-browser-data" class="danger">Delete all saved browser data</button></details></main>',1)
         if path.name=='common.js':
             text=re.sub(r'async function api\(path,data\)\{.*?return result;\}', 'async function api(path,data){return window.panda.request(path,data);}',text,count=1)
         if path.name=='references.js':
